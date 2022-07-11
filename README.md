@@ -1,1 +1,1 @@
-# ceph-osdmap-compact
+# ceph-osd-bluestore-kv-compact

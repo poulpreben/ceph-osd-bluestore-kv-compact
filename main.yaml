@@ -1,0 +1,27 @@
+---
+- name: Ceph osdmap compaction
+  hosts: [ hdd04 ]
+  serial: 1
+  gather_facts: false
+
+  tasks:
+  - include: check_health.yaml
+
+  - name: ceph-kvstore-tool compact
+    shell:
+      cmd: ls "/var/lib/ceph/osd" |cut -d '-' -f 2|sort -n | xargs -P 24 -I OSD sh -c 'systemctl stop ceph-osd@OSD; ceph-kvstore-tool bluestore-kv /var/lib/ceph/osd/ceph-OSD compact; systemctl start ceph-osd@OSD'
+    register: output
+
+  - name: Runtime information
+    debug:
+      msg: 
+        - "Runtime information for {{ inventory_hostname }}"
+        - "Start time {{ output.start }}"
+        - "End time {{ output.end }}"
+        - "Runtime {{ output.delta }}"
+  
+  - name: Save results
+    copy:
+      content: "{{ output }}"
+      dest: "results/{{ inventory_hostname }}.txt"
+    delegate_to: localhost

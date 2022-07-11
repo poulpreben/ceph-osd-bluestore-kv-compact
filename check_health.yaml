@@ -1,0 +1,22 @@
+---
+- name: Check Ceph health every 60 seconds until all OSDs are up
+  shell: 
+    cmd: ceph -s --format=json | jq -r '.osdmap | .num_osds, .num_up_osds, .num_in_osds'
+  register: health
+  until: health.stdout_lines[0] == health.stdout_lines[1] == health.stdout_lines[2]
+  retries: 60
+  delay: 60
+  delegate_to: "{{ groups['manager'][0] }}"
+
+- name: Output from Ceph health
+  debug:
+    var: health.stdout_lines
+
+- name: All OSDs healthy
+  pause:
+    prompt: |
+      ##################################
+      # All healthy                    #
+      # Progressing in 3 minutes       #
+      ##################################
+    minutes: 3
